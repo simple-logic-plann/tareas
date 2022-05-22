@@ -1,0 +1,46 @@
+group 'com.damon.tareas'
+version '1.0'
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.android.tools.build:gradle:7.1.2'
+        classpath 'com.google.gms:google-services:4.3.10'
+    }
+}
+
+rootProject.allprojects {
+    repositories {
+        google()
+        mavenCentral()
+    }
+}
+
+apply plugin: 'com.android.library'
+apply plugin: 'com.google.gms.google-services'
+
+android {
+    compileSdkVersion 31
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    defaultConfig {
+        minSdkVersion 16
+        multiDexEnabled true
+    }
+
+    dependencies{
+        def work_version = "2.7.1"
+        implementation "androidx.work:work-runtime:$work_version"
+        implementation platform('com.google.firebase:firebase-bom:30.0.0')
+        implementation "com.google.firebase:firebase-database"
+        implementation 'com.android.support:multidex:1.0.3'
+    }
+}
