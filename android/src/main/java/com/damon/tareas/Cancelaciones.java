@@ -73,11 +73,6 @@ public class Cancelaciones extends Worker {
       Date fechaViaje = new Date();
       fechaViaje.setTime(tiempo);
 
-      if (fechaViaje.getYear() == hoy.getYear()
-              && fechaViaje.getMonth() == hoy.getMonth()
-              && fechaViaje.getDay() == hoy.getDay()) {
-
-
               if ((tiempo - hoy.getTime()) >= ((long) minutosAnticipacion * 60 * 1000)) {
                 showNotification("No olvides tu viaje", "Falta 30 minutos para empezar" +
                         " tu viaje no olvides nada ", "Plann momentos que marcan");
@@ -87,7 +82,6 @@ public class Cancelaciones extends Worker {
               }
 //        verInfo(idViaje, tiempo, multa);
 
-      }
 
 
       Log.i(TAG, "SHOW NOTIFICATION ");
