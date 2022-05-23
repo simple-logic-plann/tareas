@@ -14,6 +14,7 @@ import android.util.Log;
 
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
+import androidx.work.WorkManager;
 import androidx.work.Worker;
 import androidx.work.WorkerParameters;
 
@@ -72,13 +73,18 @@ public class Cancelaciones extends Worker {
       Date hoy = new Date();
       Date fechaViaje = new Date();
       fechaViaje.setTime(tiempo);
+      Date m = new Date();
+      m.setTime(minutosMulta * 60 * 1000);
+      Log.i(TAG, "MINUTOS "+ m.getMinutes() );
+      Log.i(TAG, "RESTANTE "+((tiempo - hoy.getTime()) <0) );
 
               if ((tiempo - hoy.getTime()) >= ((long) minutosAnticipacion * 60 * 1000)) {
                 showNotification("No olvides tu viaje", "Falta 30 minutos para empezar" +
                         " tu viaje no olvides nada ", "Plann momentos que marcan");
-              } else if ((tiempo - hoy.getTime()) < ((long) minutosMulta * 60 * 1000) &&
-                      (tiempo - hoy.getTime() > 0)) {
-                verInfo(idViaje, tiempo,multa);
+              } else if ((tiempo - hoy.getTime()) <0) {
+                if((hoy.getTime()-tiempo )  >=((long) minutosMulta * 60 * 1000) ){
+                  verInfo(idViaje, tiempo,multa);
+                }
               }
 //        verInfo(idViaje, tiempo, multa);
 
@@ -118,6 +124,8 @@ public class Cancelaciones extends Worker {
         }
       }
     }
+
+    Log.i(TAG, "SI ENTRO ");
 
 
 
@@ -275,6 +283,10 @@ public class Cancelaciones extends Worker {
                     " no iniciaste el viaje se procedio a cancelarlo y realizar " +
                     " la debolucion a los pasajaeros abordo y se " +
                     " aplico una multa hacia tu persona ", "MULTA");
+
+    WorkManager manager = WorkManager.getInstance(getApplicationContext());
+    manager.cancelUniqueWork("ConductorCancelacion");
+    manager.pruneWork();
   }
 
 
