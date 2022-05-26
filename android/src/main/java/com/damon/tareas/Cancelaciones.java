@@ -78,7 +78,8 @@ public class Cancelaciones extends Worker {
       Log.i(TAG, "MINUTOS "+ m.getMinutes() );
       Log.i(TAG, "RESTANTE "+((tiempo - hoy.getTime()) <0) );
 
-              if ((tiempo - hoy.getTime()) >= ((long) minutosAnticipacion * 60 * 1000)) {
+              if ((tiempo - hoy.getTime()) <= ((long) minutosAnticipacion * 60 * 1000)
+              && (tiempo - hoy.getTime()) >0) {
                 showNotification("No olvides tu viaje", "Falta 30 minutos para empezar" +
                         " tu viaje no olvides nada ", "Plann momentos que marcan");
               } else if ((tiempo - hoy.getTime()) <0) {
