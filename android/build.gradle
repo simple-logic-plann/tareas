@@ -23,7 +23,7 @@ rootProject.allprojects {
 apply plugin: 'com.android.library'
 
 android {
-    compileSdkVersion 31
+    compileSdkVersion 32
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -41,5 +41,8 @@ android {
         implementation platform('com.google.firebase:firebase-bom:30.0.0')
         implementation "com.google.firebase:firebase-database"
         implementation 'com.android.support:multidex:1.0.3'
+        implementation 'com.squareup.retrofit2:retrofit:2.9.0'
+        implementation 'com.squareup.retrofit2:converter-gson:2.5.0'
+
     }
 }

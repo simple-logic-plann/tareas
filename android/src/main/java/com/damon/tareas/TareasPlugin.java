@@ -78,7 +78,7 @@ public class TareasPlugin implements FlutterPlugin, MethodCallHandler, ActivityA
                    .addTag("ConductorCancelacion")
                    .setConstraints(constraints)
                    .setInputData(data.build())
-                .setBackoffCriteria(BackoffPolicy.LINEAR,1,TimeUnit.MINUTES)
+                .setBackoffCriteria(BackoffPolicy.LINEAR,15,TimeUnit.MINUTES)
                    .setInitialDelay(30,TimeUnit.SECONDS)
                    .build();
            WorkManager.getInstance(activity).enqueueUniquePeriodicWork("ConductorCancelacion", ExistingPeriodicWorkPolicy.REPLACE,workRequest);
@@ -93,6 +93,7 @@ public class TareasPlugin implements FlutterPlugin, MethodCallHandler, ActivityA
 //                .build();
 //
 //        WorkManager.getInstance(activity).enqueue(workRequest);
+
 
            Log.i(TAG, "INITIALIZE ");
            result.success(true);

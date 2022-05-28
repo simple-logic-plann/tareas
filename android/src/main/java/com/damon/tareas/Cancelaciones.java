@@ -29,7 +29,6 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
@@ -41,8 +40,8 @@ public class Cancelaciones extends Worker {
 
   private static final String TAG = "INFO";
   private final NotificationManager mNotificationManager;
-  DatabaseReference reference, userRef, plannHistoricos;
-
+  DatabaseReference reference, userRef, plannHistoricos,refTokens;
+  private SendNotitications sendNotification;
 
   public Cancelaciones(@NonNull Context context, @NonNull WorkerParameters workerParams) {
     super(context, workerParams);
@@ -50,13 +49,15 @@ public class Cancelaciones extends Worker {
     reference = FirebaseDatabase.getInstance().getReference().child("projects/proj_ukivJz2aMTBYFtUytqDsTV/data/viajesBD2");
     userRef = FirebaseDatabase.getInstance().getReference().child("projects/proj_ukivJz2aMTBYFtUytqDsTV/data/usuariosBD");
     plannHistoricos = FirebaseDatabase.getInstance().getReference().child("projects/proj_ukivJz2aMTBYFtUytqDsTV/data/plannHistoricos");
+    refTokens = FirebaseDatabase.getInstance().getReference().child("projects/proj_ukivJz2aMTBYFtUytqDsTV/apps/app_tvAqgYPuc5qypUtdcscas7/members");
     mNotificationManager = (NotificationManager) getApplicationContext().getSystemService(NOTIFICATION_SERVICE);
-
+    sendNotification = new SendNotitications(refTokens);
   }
 
   @NonNull
   @Override
   public Result doWork() {
+
 
     return getDataViaje();
   }
@@ -112,6 +113,8 @@ public class Cancelaciones extends Worker {
       List pasajeros = (List) r.get("pasajeros");
       String conductorId =(String)r.get("conductorId");
 
+      double comision = Double.parseDouble(r.get("comision").toString());
+
       if(!pasajeros.isEmpty()){
         int pagados = 0;
         for (Object o : pasajeros){
@@ -121,7 +124,7 @@ public class Cancelaciones extends Worker {
                   ||statusPago.equals("efectivo")){
             pagados++;
           }
-          cancelarViaje(pasajeros,conductorId,viajeId,pagados,multa);
+          cancelarViaje(pasajeros,conductorId,viajeId,pagados,multa,comision);
         }
       }
     }
@@ -133,7 +136,7 @@ public class Cancelaciones extends Worker {
   }
 
 
-  void cancelarViaje(List pasajeros, String conductorId, String viajeId, int pagados, double multa) throws ExecutionException, InterruptedException {
+  void cancelarViaje(List pasajeros, String conductorId, String viajeId, int pagados, double multa,double comision) throws ExecutionException, InterruptedException {
     List p = new ArrayList();
     p.addAll(pasajeros);
 
@@ -146,14 +149,13 @@ public class Cancelaciones extends Worker {
         if (!esElMimsoUsuario(i, pasajeros)) {
           String statusPago = (String) pasajero.get("statusPago");
           String pasajeroId = (String) pasajero.get("pasajeroId");
-          Log.i(TAG,pasajeroId);
           Map user = getDataUser(pasajeroId);
           Map conductorInfo = getDataUser(conductorId);
           if (statusPago.equals("pagado")) {
             double costoPuesto = (double) Double.parseDouble(pasajero.get("costoPuesto").toString());
-            int nroPuesto = (int) pasajero.get("nroPuesto");
+            int nroPuesto = Integer.parseInt(pasajero.get("nroPuesto").toString());
             double total = costoPuesto * nroPuesto;
-            double comisionPlann = (double) Double.parseDouble(pasajero.get("comision").toString());
+            double comisionPlann = comision;
             double valor = total - (nroPuesto * comisionPlann);
             double saldoUser = Double.parseDouble(user.get("saldo").toString());
             Map params = new HashMap();
@@ -165,8 +167,10 @@ public class Cancelaciones extends Worker {
             if (user.get("fee") != null) {
               feeActual = Double.parseDouble(user.get("fee").toString());
             }
+            Log.i(TAG,pasajeroId);
+
             double diferenciaTarjeta = 0;
-            Map objetoPago = (Map) user.get("pago");
+            Map objetoPago = (Map) pasajero.get("pago");
             if (objetoPago.get("diferenciaTarjeta") != null) {
               diferenciaTarjeta = Double.parseDouble(objetoPago.get("diferenciaTarjeta").toString());
             }
@@ -195,10 +199,10 @@ public class Cancelaciones extends Worker {
             dataConduct.put("saldo", nuevoDevolver);
             boolean resultC = updateDataUser(conductorId, dataConduct);
           } else if (statusPago.equals("efectivo")) {
-            double comisionPlann = (double) Double.parseDouble(pasajero.get("comision").toString());
+            double comisionPlann = comision;
 
             double costoPuesto = (double) Double.parseDouble(pasajero.get("costoPuesto").toString());
-            int nroPuesto = (int) pasajero.get("nroPuesto");
+            int nroPuesto = Integer.parseInt(pasajero.get("nroPuesto").toString());
             double comisionP = costoPuesto - (((costoPuesto * 0.955) - 0.24) - comisionPlann);
             double saldoC = Double.parseDouble(conductorInfo.get("saldo").toString());
 
@@ -214,6 +218,9 @@ public class Cancelaciones extends Worker {
       }
 
     }
+
+    Log.i(TAG,"SALIO DEL PRIMER FOR");
+
 
     for (int i = 0; i < pasajeros.size(); i++) {
       Map pasajero = (Map) pasajeros.get(i);
@@ -278,16 +285,33 @@ public class Cancelaciones extends Worker {
 
     boolean rPla = updatePlannHis(conductorId, viajeId, plann);
 
+
+
+
     Log.i(TAG,"FINAL " + String.valueOf(rPla));
     showNotification("Se cancelo tu viaje",
             "Devido que pasaron mas de 16 minutos y " +
                     " no iniciaste el viaje se procedio a cancelarlo y realizar " +
                     " la debolucion a los pasajaeros abordo y se " +
                     " aplico una multa hacia tu persona ", "MULTA");
+    try {
+      for (int i =0 ; i < pasajeros.size();i++){
+        Map pa = (Map) pasajeros.get(i);
+        String id =(String) pa.get("pasajeroId");
+        if(!id.equals("null")){
+          boolean result = sendNotification. sendNotification(id);
+          Log.i(TAG,"SEND NOTIFICATION "+result);
+        }
+      }
+    }catch (Exception e){
+      Log.i(TAG,"ERRO NOTIFICA "+e.getMessage());
 
-    WorkManager manager = WorkManager.getInstance(getApplicationContext());
-    manager.cancelUniqueWork("ConductorCancelacion");
-    manager.pruneWork();
+    }finally {
+      WorkManager manager = WorkManager.getInstance(getApplicationContext());
+      manager.cancelUniqueWork("ConductorCancelacion");
+      manager.pruneWork();
+    }
+
   }
 
 
@@ -428,6 +452,8 @@ public class Cancelaciones extends Worker {
     return esMismo;
   }
 
+
+
   void showNotification(String title, String message, String ticker) {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
       CharSequence name = "Plann";
@@ -435,10 +461,10 @@ public class Cancelaciones extends Worker {
       NotificationChannel mChannel =
               new NotificationChannel("channel_01", name, NotificationManager.IMPORTANCE_DEFAULT);
 
-      // Set the Notification Channel for the Notification Manager.
+      // Set the SendNotitications Channel for the SendNotitications Manager.
       mNotificationManager.createNotificationChannel(mChannel);
     }
-    NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext())
+    NotificationCompat.Builder builder = new NotificationCompat.Builder(getApplicationContext(),"channel_01")
 //                .addAction(R.drawable.ic_launch, getString(R.string.launch_activity),
 //                        activityPendingIntent)
 
