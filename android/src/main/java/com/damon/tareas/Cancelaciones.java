@@ -99,7 +99,7 @@ public class Cancelaciones extends Worker {
       Log.i(TAG, "ERROR " + e.getLocalizedMessage());
 
       showNotification("Error ", e.getMessage(), "TRY CATCH");
-      return Result.failure();
+      return Result.retry();
     }
   }
 

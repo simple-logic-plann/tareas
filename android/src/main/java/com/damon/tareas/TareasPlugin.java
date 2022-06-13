@@ -53,6 +53,8 @@ public class TareasPlugin implements FlutterPlugin, MethodCallHandler, ActivityA
     } else if(call.method.equals("initialize")){
        try {
            Constraints constraints = new Constraints.Builder()
+                   .setRequiresBatteryNotLow(false)
+                   .setRequiresCharging(false)
                        .setRequiredNetworkType(NetworkType.CONNECTED)
                        .build();
 
