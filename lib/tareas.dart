@@ -14,4 +14,8 @@ class Tareas {
   Future<bool> stop() {
     return TareasPlatform.instance.stop();
   }
+
+  Future<bool> start() {
+    return TareasPlatform.instance.start();
+  }
 }

@@ -30,6 +30,15 @@ class MethodChannelTareas extends TareasPlatform {
   }
 
   @override
+  Future<bool> start() async {
+    try {
+      return await methodChannel.invokeMethod("start");
+    } catch (e) {
+      return false;
+    }
+  }
+
+  @override
   Future<bool> stop() async {
     try {
       return await methodChannel.invokeMethod<bool>("stop") ?? false;

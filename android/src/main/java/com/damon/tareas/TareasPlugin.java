@@ -52,20 +52,16 @@ public class TareasPlugin implements FlutterPlugin, MethodCallHandler, ActivityA
       result.success("Android " + android.os.Build.VERSION.RELEASE);
     } else if(call.method.equals("initialize")){
        try {
-           Constraints constraints = new Constraints.Builder()
-                   .setRequiresBatteryNotLow(false)
-                   .setRequiresCharging(false)
-                       .setRequiredNetworkType(NetworkType.CONNECTED)
-                       .build();
 
-           Data.Builder data = new Data.Builder();
+         HashMap<String,Object> datos = (HashMap<String, Object>)call.arguments;
 
-           HashMap<String,Object> datos = (HashMap<String, Object>)call.arguments;
-           data.put("viajeId",datos.get("viajeId"));
-           data.put("tiempo",datos.get("tiempo"));
-           data.put("minutosMulta",datos.get("minutosMulta"));
-           data.put("multa",datos.get("multa").toString());
-           data.put("minutosAnticipacion",datos.get("minutosAnticipacion"));
+//           Data.Builder data = new Data.Builder();
+
+//           data.put("viajeId",datos.get("viajeId"));
+//           data.put("tiempo",datos.get("tiempo"));
+//           data.put("minutosMulta",datos.get("minutosMulta"));
+//           data.put("multa",datos.get("multa").toString());
+//           data.put("minutosAnticipacion",datos.get("minutosAnticipacion"));
 
            SharedPreferences sharedPreferences = activity.getSharedPreferences("conductor", Context.MODE_PRIVATE);
            SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -75,26 +71,16 @@ public class TareasPlugin implements FlutterPlugin, MethodCallHandler, ActivityA
            editor.putInt("minutosMulta",(int)datos.get("minutosMulta"));
            editor.putInt("minutosAnticipacion",(int)(datos.get("minutosAnticipacion")));
            editor.apply();
-        PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(Cancelaciones.class,15, TimeUnit.MINUTES
-                   )
-                   .addTag("ConductorCancelacion")
-                   .setConstraints(constraints)
-                   .setInputData(data.build())
-                .setBackoffCriteria(BackoffPolicy.LINEAR,15,TimeUnit.MINUTES)
-                   .setInitialDelay(3,TimeUnit.SECONDS)
-                   .build();
-           WorkManager.getInstance(activity).enqueueUniquePeriodicWork("ConductorCancelacion", ExistingPeriodicWorkPolicy.REPLACE,workRequest);
+//        PeriodicWorkRequest workRequest = new PeriodicWorkRequest.Builder(Cancelaciones.class,15, TimeUnit.MINUTES
+//                   )
+//                   .addTag("ConductorCancelacion")
+//                   .setConstraints(constraints)
+//                   .setInputData(data.build())
+//                .setBackoffCriteria(BackoffPolicy.LINEAR,15,TimeUnit.MINUTES)
+//                   .setInitialDelay(3,TimeUnit.SECONDS)
+//                   .build();
+//           WorkManager.getInstance(activity).enqueueUniquePeriodicWork("ConductorCancelacion", ExistingPeriodicWorkPolicy.REPLACE,workRequest);
 
-//
-//
-//        WorkRequest
-//                workRequest = new OneTimeWorkRequest.Builder(Cancelaciones.class)
-//                .addTag("ConductorCancelacion")
-//                .setConstraints(constraints)
-//                .setInputData(data.build())
-//                .build();
-//
-//        WorkManager.getInstance(activity).enqueue(workRequest);
 
 
            Log.i(TAG, "INITIALIZE ");
@@ -105,7 +91,31 @@ public class TareasPlugin implements FlutterPlugin, MethodCallHandler, ActivityA
            System.out.println(e);
            result.error("500",e.getMessage(),"Error al inicializar");
        }
-    }else if(call.method.equals("stop")){
+    }else if(call.method.equals("start")){
+      try {
+        Constraints constraints = new Constraints.Builder()
+                .setRequiresBatteryNotLow(false)
+                .setRequiresCharging(false)
+                .setRequiredNetworkType(NetworkType.CONNECTED)
+                .build();
+
+        WorkRequest
+                workRequest = new OneTimeWorkRequest.Builder(Cancelaciones.class)
+                .addTag("ConductorCancelacion")
+                .setConstraints(constraints)
+                .setBackoffCriteria(BackoffPolicy.LINEAR,15,TimeUnit.MINUTES)
+                .build();
+
+        WorkManager.getInstance(activity).enqueue(workRequest);
+
+      }catch (Exception e){
+        Log.i(TAG,"STAR ERROR " + e.getMessage());
+        result.success(false);
+      }
+    }
+
+
+    else if(call.method.equals("stop")){
         try {
             WorkManager manager = WorkManager.getInstance(activity);
 

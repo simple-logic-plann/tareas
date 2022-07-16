@@ -32,6 +32,10 @@ abstract class TareasPlatform extends PlatformInterface {
     throw UnimplementedError("initialize() has not been implemented.");
   }
 
+  Future<bool> start() {
+    throw UnimplementedError("start() has not been implemented");
+  }
+
   Future<bool> stop() {
     throw UnimplementedError("stop() has not been implemented");
   }

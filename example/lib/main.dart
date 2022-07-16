@@ -46,6 +46,11 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
+  void start() async {
+    final r = await _tareasPlugin.start();
+    debugPrint("$r");
+  }
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -63,6 +68,11 @@ class _MyAppState extends State<MyApp> {
                   initPlatformState();
                 },
                 child: Text("Initialize")),
+            ElevatedButton(
+                onPressed: () {
+                  start();
+                },
+                child: Text("Start")),
             ElevatedButton(
                 onPressed: () async {
                   bool r = await _tareasPlugin.stop();
