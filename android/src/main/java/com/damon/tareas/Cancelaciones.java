@@ -257,6 +257,7 @@ public class Cancelaciones extends Worker {
 
     Map condutorActualizar = new HashMap();
     condutorActualizar.put("viajeId", "0");
+    condutorActualizar.put("pap", false);
     condutorActualizar.put("detallesViajeConductor", detallesViajeC);
 
     double valorMUlta = multa * pagados;
@@ -264,7 +265,7 @@ public class Cancelaciones extends Worker {
     Map conductorInfo = getDataUser(conductorId);
 
     double saldoC = Double.parseDouble(conductorInfo.get("saldo").toString());
-
+    saldoC=saldoC-valorMUlta;
     BigDecimal dSaldo = new BigDecimal(saldoC).setScale(2, RoundingMode.HALF_UP);
     double nuevoSaldo =  dSaldo.doubleValue();
 
